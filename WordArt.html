@@ -189,6 +189,11 @@ input[type="submit"]:active, .button:active {
             </div>
             <br/>
             <div>
+              <span style="font-size: 2em;">White Space:</span>      
+              <input id="whiteSpace" style="width: 30%;" type="text" name="user" placeholder="white space" value="0">
+            </div>
+            <br/>
+            <div>
               <span style="font-size: 2em;">Start of each block:</span>      
               <input id="startBlock" style="width: 30%;" type="text" name="user" placeholder="Start of block" value="">
             </div>
@@ -214,9 +219,10 @@ input[type="submit"]:active, .button:active {
               </select>
             </div> -->
             <br/>
+            <!-- dont need update button anymore
             <div>
               <input class="button fit" name="submit" value="Submit">
-            </div>
+            </div> -->
         </form>  
       </div>
     </div>
@@ -239,88 +245,120 @@ input[type="submit"]:active, .button:active {
 
 
 <script>
-  var LetterArt = {};//{'2': [], '2.5': [], '3': [], '3.5': [], '4':[], '5': [], '6': []}; 
+  var LetterArt = {};//{'2': [], '2.5': [], '3': [], '3.5': [], '4':[], '5': [], '6': []};  
+
+  
+  var underscoreIndex = 0
+  var spaceIndex = 15
+  var minAscii = 44
+  var MaxAscii = 90
+  var errorAscii = 17
+  var underscoreAscii = 95
 
   //when document has loaded, starts the loop
   $(document).ready(function(){
     defineANSII();
     upDateWordArt()
-    //startClock();
-  });
-  
-  $("#myform :input").change(function() {
-    upDateWordArt()
+    // startClock(); bad method, causes a lot of processing power
   });
 
-  //basic loop to just keep updating the word
-  function startClock(){
+  $('#myform').keydown(function() {
     setTimeout(() => {
       upDateWordArt();
-      startClock();
-    }, 1000);
-  }
+    }, 10);
+  });
+
+  // updates on key press, dont need update button anymore
+  //  $("#myform").change(function() {
+  //   upDateWordArt()
+  // });
+  //
+  //basic loop to just keep updating the word
+  // function startClock(){
+  //   setTimeout(() => {
+  //     upDateWordArt();
+  //     startClock();
+  //   }, 10);
+  // };
 
 
   //word function
   function upDateWordArt(){
 
-    var underscoreIndex = 0
-    var spaceIndex = 15
-    var minAscii = 44
-    var MaxAscii = 90
-    var errorAscii = 17
-    var underscoreAscii = 95
 
-    var text = $("#textToPrint").val().toUpperCase();
+    var text = " ".concat($("#textToPrint").val().toUpperCase().trim());
     //var size = $("#sizeOfWordArt").val();
     var front = $("#startLine").val();
+    var whiteSpace = " ".repeat(parseInt($('#whiteSpace').val()));
     var frontBlock = $("#startBlock").val();
     var endBlock = $("#endBlock").val();
     var lines = "";
+    var wordArt = {};
     var printArray = Object.keys(LetterArt).sort() //['2','2.5','3','3.5','4','5','6'];
 
-    printArray.forEach(size => {
+    printArray.forEach(currentSize => {
 
-      lines += front + "Number of lines: " + size + "<br>" + frontBlock + "<br>" + front;
-      for (let index = 0; index < size; index++) {
-        for(let jindex = 0; jindex < text.length; jindex++){
-
-          console.log(text.charCodeAt(jindex));
-          
-          //adds space
-          if(text.charAt(jindex) == " "){
-            lines += LetterArt[size][index][spaceIndex + 1];
-
-          //adds underscore
-          }else if(text.charAt(jindex) == "_"){
-            lines += LetterArt[size][index][underscoreIndex];
-
-          //adds char if its valid
-          }else if(text.charCodeAt(jindex) < minAscii | text.charCodeAt(jindex) > MaxAscii){
-            lines += LetterArt[size][index][errorAscii];
-
-          //adds err if invalid
-          }else{
-            lines += LetterArt[size][index][text.charCodeAt(jindex) - minAscii + 1]; //plus one to offset for _ char
-          }
-
-          //adds spacing
-          lines += LetterArt[size][index][spaceIndex];
-        } 
-        
-        //adds a line break
-        lines += '<br>\r\n' + front;
-
-        //replaces the spaces with html space
-        lines = lines.replace(/ /g, "&nbsp")
-      } 
-
+      lines += front + " Number of lines: " + currentSize + "<br>" + frontBlock + "<br>" + whiteSpace + front;
+      
+      // generates word art for current size
+      wordArt[currentSize] = generateWordArt(currentSize, text,front, whiteSpace, frontBlock, endBlock)
+      
+      // adds text
+      lines += wordArt[currentSize]
+      //replaces the spaces with html space
+      lines = lines.replace(/ /g, "&nbsp")
       lines += endBlock + '<br><br><br><br>';
     });
   
     $("#WordArt").html(lines);
 
   }
+
+function generateWordArt(size, text, front, whiteSpace, frontBlock, endBlock){
+  output = ""
+
+  // for each row of the current size
+  console.log('text is ' + text)
+  console.log('dealing with ' + size);
+  console.log('has size ' + LetterArt[size].length);
+
+  for (let row = 0; row < LetterArt[size].length; row++) {
+    console.log('at row ' + row);
+
+      for(let charIndex = 0; charIndex < text.length; charIndex++){
+
+      console.log('char: ' + text.charCodeAt(charIndex));
+
+      //adds space
+      if(text.charAt(charIndex) == " "){
+        output += LetterArt[size][row][spaceIndex + 1];
+
+      //adds underscore
+      }else if(text.charAt(charIndex) == "_"){
+        output += LetterArt[size][row][underscoreIndex];
+
+      //adds char if its valid
+      }else if(text.charCodeAt(charIndex) < minAscii | text.charCodeAt(charIndex) > MaxAscii){
+        output += LetterArt[size][row][errorAscii];
+
+      //adds err if invalid
+      }else{
+        output += LetterArt[size][row][text.charCodeAt(charIndex) - minAscii + 1]; //plus one to offset for _ char
+      }
+
+      //adds spacing
+      output += LetterArt[size][row][spaceIndex];
+      } 
+  
+    //adds a line break
+    output += '<br>\r\n' + whiteSpace + front;
+      
+    }        
+  return output 
+}
+
+
+
 
 //This is where the decoration for each letter is stored. edit it here
 //order is in asci order, with some charecters between numbers and letters replaced with features. and special charecters at the start.
@@ -341,9 +379,9 @@ input[type="submit"]:active, .button:active {
 
     LetterArt['3.5'] = []
     LetterArt['3.5'][0] = ["    ","  ","    ","  ","   █","▄▀▀▀▄","▄█ ","▄▀▀▀▄","▄▀▀▀▄","█  █ ","█▀▀▀","▄▀▀▀▄","▀▀▀▀▀█","▄▀▀▀▄","▄▀▀▀▄","&nbsp","&nbsp&nbsp","ERR","","","","","▄▀▀▀▄","█▀▀▀▄","▄▀▀▀","█▀▀▀▄","█▀▀▀","█▀▀▀","▄▀▀▀▀","█   █","▀▀█▀▀","    █","█  ▄▀","█   ","█▄   ▄█","█▄    █","▄▀▀▀▀▄","█▀▀▄","▄▀▀▀▀▄","█▀▀▀▄","▄▀▀▀▀","▀▀█▀▀","█   █","█   █","█     █","▀▄   ▄▀","█     █","▀▀▀▀█"] 
-    LetterArt['3.5'][1] = ["    ","  ","▄▄▄▄","  ","  █ ","█ ▄▀█"," █ ","  ▄▄▀","  ▄▄▀","█▄▄█▄","█▄▄ ","█▄▄▄ ","   ▄▀ ","▀▄▄▄▀","▀▄▄▄█","&nbsp","&nbsp&nbsp","ERR","","","","","█▄▄▄█","█▄▄▄▀","█   ","█   █","█▄▄ ","█▄▄ ","█  ▄▄","█▄▄▄█","  █  ","    █","█▄▀  ","█   ","█ ▀▄▀ █","█ ▀▄  █","█    █","█▄▄▀","█    █","█▄▄▄▀","▀▄▄▄ ","  █  ","█   █","▀▄ ▄▀","█  ▄  █","  ▀▄▀  "," ▀▄ ▄▀ ","  ▄▀ "] 
-    LetterArt['3.5'][2] = ["    ","▄▄","    ","  "," █  ","█▀  █"," █ ","▄▀   ","▄   █","   █ ","   █","█   █","  ▐▌  ","█   █","    █","&nbsp","&nbsp&nbsp","ERR","","","","","█   █","█   █","█   ","█   █","█   ","█   ","█   █","█   █","  █  ","▄   █","█ ▀▄ ","█   ","█     █","█   ▀▄█","█    █","█   ","█  ▀▄▀","█  ▀█","    █","  █  ","█   █"," █ █ ","█ █ █ █"," ▄▀ ▀▄ ","   █   ","▄▀   "]
-    LetterArt['3.5'][3] = ["▄▄▄▄"," █","    ","██","█   "," ▀▀▀ ","▀▀▀","▀▀▀▀▀"," ▀▀▀ ","   ▀ ","▀▀▀ "," ▀▀▀ ","  ▀   "," ▀▀▀ "," ▀▀▀ ","&nbsp","&nbsp&nbsp","ERR","","","","","▀   ▀","▀▀▀▀ "," ▀▀▀","▀▀▀▀ ","▀▀▀▀","▀   "," ▀▀▀▀","▀   ▀","▀▀▀▀▀"," ▀▀▀ ","▀   ▀","▀▀▀▀","▀     ▀","▀     ▀"," ▀▀▀▀ ","▀   "," ▀▀▀ ▀","▀   ▀","▀▀▀▀ ","  ▀  "," ▀▀▀ ","  ▀  "," ▀   ▀ ","▀     ▀","   ▀   ","▀▀▀▀▀"]
+    LetterArt['3.5'][1] = ["    ","  ","▄▄▄▄","  "," ▄█ ","█ ▄▀█"," █ ","  ▄▄▀","  ▄▄▀","█▄▄█▄","█▄▄ ","█▄▄▄ ","   ▄▀ ","▀▄▄▄▀","▀▄▄▄█","&nbsp","&nbsp&nbsp","ERR","","","","","█▄▄▄█","█▄▄▄▀","█   ","█   █","█▄▄ ","█▄▄ ","█  ▄▄","█▄▄▄█","  █  ","    █","█▄▀  ","█   ","█ ▀▄▀ █","█ ▀▄  █","█    █","█▄▄▀","█    █","█▄▄▄▀","▀▄▄▄ ","  █  ","█   █","▀▄ ▄▀","█  ▄  █","  ▀▄▀  "," ▀▄ ▄▀ ","  ▄▀ "] 
+    LetterArt['3.5'][2] = ["    ","▀█","    ","▄▄","▄▀  ","█▀  █"," █ ","▄▀   ","▄   █","   █ ","   █","█   █","  ▐▌  ","█   █","    █","&nbsp","&nbsp&nbsp","ERR","","","","","█   █","█   █","█   ","█   █","█   ","█   ","█   █","█   █","  █  ","▄   █","█ ▀▄ ","█   ","█     █","█   ▀▄█","█    █","█   ","█  ▀▄▀","█  ▀█","    █","  █  ","█   █"," █ █ ","█ █ █ █"," ▄▀ ▀▄ ","   █   ","▄▀   "]
+    LetterArt['3.5'][3] = ["▀▀▀▀"," ▀","    ","▀▀","▀   "," ▀▀▀ ","▀▀▀","▀▀▀▀▀"," ▀▀▀ ","   ▀ ","▀▀▀ "," ▀▀▀ ","  ▀   "," ▀▀▀ "," ▀▀▀ ","&nbsp","&nbsp&nbsp","ERR","","","","","▀   ▀","▀▀▀▀ "," ▀▀▀","▀▀▀▀ ","▀▀▀▀","▀   "," ▀▀▀▀","▀   ▀","▀▀▀▀▀"," ▀▀▀ ","▀   ▀","▀▀▀▀","▀     ▀","▀     ▀"," ▀▀▀▀ ","▀   "," ▀▀▀ ▀","▀   ▀","▀▀▀▀ ","  ▀  "," ▀▀▀ ","  ▀  "," ▀   ▀ ","▀     ▀","   ▀   ","▀▀▀▀▀"]
 
     // LetterArt['4'] = []
     //LetterArt['4'][0]   = ["    ","  ","    ","  ","   █","▄▀▀▀▀▄","▄▄█  ","▄▀▀▀▀▄","▄▀▀▀▀▄","█   █ ","█▀▀▀▀","▄▀▀▀▀▄","▀▀▀▀▀█","▄▀▀▀▀▄","▄▀▀▀▀▄","&nbsp","&nbsp&nbsp","ERR","","","","","▄▀▀▀▀▄","█▀▀▀▀▄","█▀▀▀▀","█▀▀▀▄ ","█▀▀▀▀","█▀▀▀▀","▄▀▀▀▀▀","█    █","▀▀█▀▀","     █","█  ▄▀","█    ","█▄     ▄█","█▄     █","▄▀▀▀▀▀▄","█▀▀▀▄","▄▀▀▀▀▀▄","█▀▀▀▀▄","▄▀▀▀▀▀","▀▀▀█▀▀▀","█    █","█   █","█     █","█    █","█     █","▀▀▀▀▀█"] 
