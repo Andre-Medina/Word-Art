@@ -379,9 +379,9 @@ input[type="submit"]:active, .button:active {
 function generateWordArt(size, text, front, whiteSpace, frontBlock, endBlock, noBreaks = false){
   
   if(noBreaks){
-    output = frontBlock + "\n" + whiteSpace + front;
+    output = whiteSpace + frontBlock + "\n" + whiteSpace + front;
   }else{
-    output = frontBlock + "<br>" + whiteSpace + front;
+    output = whiteSpace + frontBlock + "<br>" + whiteSpace + front;
   }
 
   // for each row of the current size
